@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AuthApp</title>
+<style>
+  :root {
+    --bg: #eef2f6;
+    --surface: #ffffff;
+    --ink: #14213d;
+    --muted: #5b6b82;
+    --line: #d3dbe6;
+    --accent: #1f4fd8;
+    --accent-ink: #ffffff;
+    --ok: #0f7a4d;
+    --err: #b3261e;
+    --code-bg: #101a2e;
+    --code-ink: #d7e3f8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1626;
+      --surface: #16213a;
+      --ink: #e6edf8;
+      --muted: #94a3bd;
+      --line: #2a3a5c;
+      --accent: #6c93ff;
+      --accent-ink: #0e1626;
+      --ok: #4cd694;
+      --err: #ff8a80;
+      --code-bg: #0a1120;
+      --code-ink: #d7e3f8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 48px; }
+  h1 { font-size: 1.75rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+
+  nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  nav button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: 10px 20px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  nav button[aria-selected="true"] {
+    background: var(--accent); color: var(--accent-ink); border-color: var(--accent);
+  }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 24px;
+  }
+  .panel h2 { font-size: 1.1rem; margin: 0 0 4px; }
+  .panel p { color: var(--muted); margin: 0 0 18px; font-size: 0.95rem; }
+  .route { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem; color: var(--muted); }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  label { display: block; font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+  input {
+    width: 100%; font: inherit; padding: 10px 12px; margin-bottom: 14px;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: var(--bg); color: var(--ink);
+  }
+  .submit {
+    font: inherit; font-weight: 600; cursor: pointer;
+    padding: 10px 22px; border-radius: 8px; border: 0;
+    background: var(--accent); color: var(--accent-ink);
+  }
+  .submit:disabled { opacity: 0.6; cursor: wait; }
+
+  .status { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-weight: 600; }
+  .badge {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem;
+    padding: 2px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
+  }
+  .badge.ok { color: var(--ok); border-color: var(--ok); }
+  .badge.err { color: var(--err); border-color: var(--err); }
+  pre {
+    margin: 0; padding: 16px; border-radius: 8px; overflow-x: auto;
+    background: var(--code-bg); color: var(--code-ink);
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85rem;
+    min-height: 160px; white-space: pre-wrap; word-break: break-word;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AuthApp</h1>
+  <p class="sub">Try each auth route and see the server's response.</p>
+
+  <nav role="tablist" aria-label="Auth actions">
+    <button role="tab" aria-selected="true"  data-view="register">Register</button>
+    <button role="tab" aria-selected="false" data-view="login">Login</button>
+    <button role="tab" aria-selected="false" data-view="test">Test</button>
+  </nav>
+
+  <div class="grid">
+    <section class="panel">
+      <!-- Register -->
+      <div class="view active" id="view-register">
+        <h2>Create an account</h2>
+        <p class="route">POST /api/auth/register</p>
+        <form id="form-register">
+          <label for="reg-name">Name</label>
+          <input id="reg-name" name="name" autocomplete="name" required>
+          <label for="reg-email">Email</label>
+          <input id="reg-email" name="email" type="email" autocomplete="email" required>
+          <label for="reg-password">Password</label>
+          <input id="reg-password" name="password" type="password" autocomplete="new-password" required>
+          <button class="submit" type="submit">Register</button>
+        </form>
+      </div>
+
+      <!-- Login -->
+      <div class="view" id="view-login">
+        <h2>Log in</h2>
+        <p class="route">POST /api/auth/login</p>
+        <form id="form-login">
+          <label for="log-email">Email</label>
+          <input id="log-email" name="email" type="email" autocomplete="email" required>
+          <label for="log-password">Password</label>
+          <input id="log-password" name="password" type="password" autocomplete="current-password" required>
+          <button class="submit" type="submit">Log in</button>
+        </form>
+      </div>
+
+      <!-- Test -->
+      <div class="view" id="view-test">
+        <h2>Test the API</h2>
+        <p class="route">GET /api/auth/test</p>
+        <p>Sends a request with your cookies. Log in first to check that you are signed in.</p>
+        <button class="submit" id="btn-test" type="button">Run test</button>
+      </div>
+    </section>
+
+    <section class="panel" aria-live="polite">
+      <h2>Response</h2>
+      <div class="status">
+        <span class="badge" id="badge">No request yet</span>
+        <span id="timing"></span>
+      </div>
+      <pre id="output">Submit a form or run the test to see the response here.</pre>
+    </section>
+  </div>
+</div>
+
+<script>
+  // Leave empty when Express serves this page. Set to e.g. "https://api.example.com" if hosted separately.
+  const API_BASE = "";
+
+  const tabs = document.querySelectorAll("nav button");
+  const views = document.querySelectorAll(".view");
+  const badge = document.getElementById("badge");
+  const timing = document.getElementById("timing");
+  const output = document.getElementById("output");
+
+  function showView(name) {
+    tabs.forEach(t => t.setAttribute("aria-selected", String(t.dataset.view === name)));
+    views.forEach(v => v.classList.toggle("active", v.id === "view-" + name));
+  }
+  tabs.forEach(t => t.addEventListener("click", () => showView(t.dataset.view)));
+
+  async function callApi(path, options, button) {
+    if (button) button.disabled = true;
+    badge.className = "badge";
+    badge.textContent = "Sending…";
+    timing.textContent = "";
+    const start = performance.now();
+    try {
+      const res = await fetch(API_BASE + path, { credentials: "include", ...options });
+      const text = await res.text();
+      let body;
+      try { body = JSON.stringify(JSON.parse(text), null, 2); } catch { body = text || "(empty response)"; }
+      badge.textContent = res.status + " " + (res.statusText || "");
+      badge.className = "badge " + (res.ok ? "ok" : "err");
+      output.textContent = body;
+    } catch (err) {
+      badge.textContent = "Network error";
+      badge.className = "badge err";
+      output.textContent = "Could not reach the server.\n" + err.message;
+    } finally {
+      timing.textContent = Math.round(performance.now() - start) + " ms";
+      if (button) button.disabled = false;
+    }
+  }
+
+  function postJson(form) {
+    return {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(new FormData(form)))
+    };
+  }
+
+  document.getElementById("form-register").addEventListener("submit", e => {
+    e.preventDefault();
+    callApi("/api/auth/register", postJson(e.target), e.submitter);
+  });
+
+  document.getElementById("form-login").addEventListener("submit", e => {
+    e.preventDefault();
+    callApi("/api/auth/login", postJson(e.target), e.submitter);
+  });
+
+  document.getElementById("btn-test").addEventListener("click", e => {
+    callApi("/api/auth/test", { method: "GET" }, e.currentTarget);
+  });
+</script>
+</body>
+</html>
